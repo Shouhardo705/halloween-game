@@ -17,7 +17,10 @@ let lives = 3;
 let gameRunning = false;
 let baseSpeed = 2;
 let speedMultiplier = 1;
+let caughtGoodItems = [];
+let missedGoodItems = [];
 let caughtBadItems = [];
+let missedBadItems = [];
 
 const basket = {
     x: canvas.width / 2 - 50,
@@ -115,6 +118,9 @@ function updateFallingItems() {
             if (itemTypes[item.type].isGood) {
                 score += itemTypes[item.type].points;
                 scoreDisplay.textContent = score;
+                if (!caughtGoodItems.includes(item.type)) {
+                    caughtGoodItems.push(item.type);
+                }
             } else {
                 lives--;
                 livesDisplay.textContent = lives;
@@ -133,8 +139,15 @@ function updateFallingItems() {
             if (itemTypes[item.type].isGood) {
                 lives--;
                 livesDisplay.textContent = lives;
+                if (!missedGoodItems.includes(item.type)) {
+                    missedGoodItems.push(item.type);
+                }
                 if (lives <= 0) {
                     endGame();
+                }
+            } else {
+                if (!missedBadItems.includes(item.type)) {
+                    missedBadItems.push(item.type);
                 }
             }
             fallingItems.splice(index, 1);
@@ -170,7 +183,10 @@ function startGame() {
     score = 0;
     lives = 3;
     fallingItems = [];
+    caughtGoodItems = [];
+    missedGoodItems = [];
     caughtBadItems = [];
+    missedBadItems = [];
     speedMultiplier = 1;
     gameStartTime = Date.now();
     lastItemTime = Date.now();
@@ -186,18 +202,39 @@ function endGame() {
     gameRunning = false;
     finalScoreDisplay.textContent = score;
     
-    let allStories = '<h3>Your Story:</h3>';
+    let allStories = '';
     
-    Object.keys(itemTypes).forEach(key => {
-        const item = itemTypes[key];
-        if (item.isGood && item.story) {
+    // Good items caught
+    if (caughtGoodItems.length > 0) {
+        allStories += '<h3>Good Memories Caught:</h3>';
+        caughtGoodItems.forEach(itemKey => {
+            const item = itemTypes[itemKey];
             allStories += `<p><strong>${item.name}:</strong> ${item.story}</p>`;
-        }
-    });
+        });
+    }
     
+    // Good items missed
+    if (missedGoodItems.length > 0) {
+        allStories += '<h3 style="margin-top: 20px;">Good Memories Missed:</h3>';
+        missedGoodItems.forEach(itemKey => {
+            const item = itemTypes[itemKey];
+            allStories += `<p><strong>${item.name}:</strong> ${item.story}</p>`;
+        });
+    }
+    
+    // Bad items caught
     if (caughtBadItems.length > 0) {
-        allStories += '<h3 style="margin-top: 20px;">Even the "Bad" Memories Matter:</h3>';
+        allStories += '<h3 style="margin-top: 20px;">Even the "Bad" Memories Caught Matter:</h3>';
         caughtBadItems.forEach(itemKey => {
+            const item = itemTypes[itemKey];
+            allStories += `<p><strong>${item.name}:</strong> ${item.story}</p>`;
+        });
+    }
+    
+    // Bad items missed (avoided successfully)
+    if (missedBadItems.length > 0) {
+        allStories += '<h3 style="margin-top: 20px;">Successfully Avoided:</h3>';
+        missedBadItems.forEach(itemKey => {
             const item = itemTypes[itemKey];
             allStories += `<p><strong>${item.name}:</strong> ${item.story}</p>`;
         });
